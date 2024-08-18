@@ -1,16 +1,7 @@
 {
+  "name": "@xwtlt/lark-faas-field-shortcuts",
   "private": true,
-  "main": "index.js",
   "scripts": {
-    "start": "block-basekit-cli start:field",
-    "build": "block-basekit-cli build:field",
-    "pack": "block-basekit-cli pack:field",
-    "dev": "block-basekit-cli dev:field"
-  },
-  "devDependencies": {
-    "@lark-opdev/block-basekit-cli": "1.0.4-alpha.19"
-  },
-  "dependencies": {
-    "@lark-opdev/block-basekit-server-api": "1.0.4-alpha.19"
+    "test": "echo \"Error: no test specified\" && exit 1"
   }
 }
