@@ -1,7 +1,15 @@
-import { basekit, FieldType, field, FieldComponent, FieldCode, NumberFormatter, AuthorizationType, DateFormatter } from '@lark-opdev/block-basekit-server-api';
+import {
+  basekit,
+  FieldType,
+  FieldComponent,
+  NumberFormatter,
+  DateFormatter,
+  field,
+  FieldCode
+} from '@lark-opdev/block-basekit-server-api'
 const { t } = field
 
-basekit.addDomainList(['slycompany.market.alicloudapi.com', 'businessstd.shumaidata.com'])
+basekit.addDomainList(['alicloudapi.com', 'shumaidata.com'])
 
 basekit.addField({
   i18n: {
@@ -212,25 +220,77 @@ basekit.addField({
   },
 
   execute: async (formItemParams, context) => {
-    const { url } = formItemParams;
-    if (Array.isArray(url)) {
-      return {
-        code: FieldCode.Success,
-        data: (url.map(({ link }, index) => {
-          if (!link) {
-            return undefined
-          }
-          const name = link.split('/').slice(-1)[0];
-          return {
-            name: '随机名字' + index + name,
-            content: link,
-            contentType: "attachment/url"
-          }
-        })).filter((v) => v)
-      }
+    const { dataSource, appCode, keyword } = formItemParams
+    const { fetch } = context
+
+    let baseUrl = ''
+    if (dataSource.value === 'shulian')
+      baseUrl = `https://slycompany.market.alicloudapi.com/business2/get`
+    else if (dataSource.value === 'shumai')
+      baseUrl = `https://businessstd.shumaidata.com/getbusinessstd`
+    else
+      return { code: FieldCode.AuthorizationError, msg: 'No Authorization' }
+
+    // @ts-ignore
+    let params = new URLSearchParams({
+      keyword: keyword[0].text,
+    })
+    let headers = {
+      'Authorization': `APPCODE ${appCode}`,
+      'Content-Type': 'application/json; charset=UTF-8'
     }
+    let url = baseUrl + '?' + params.toString()
+
+    const query = await fetch(url, {
+      method: 'GET',
+      headers: headers,
+    })
+    if (!query.ok) {
+      // @ts-ignore
+      console.log('User Query Error:', JSON.stringify(query))
+      return {code: FieldCode.Error, msg: `Query Error: ${query.status}`}
+    }
+    const response = await query.json()
+    // @ts-ignore
+    console.log('User Query Success:', JSON.stringify(response))
+    if (response.status !== 'success') {
+      return {code: FieldCode.Error, msg: `Query Error: ${response.message}`}
+    }
+
     return {
-      code: FieldCode.Error,
+      code: FieldCode.Success,
+      data: {
+        id: `${Math.random()}`,
+        companyName: response.data.data.companyName,
+        creditNo: response.data.data.creditNo,
+        companyCode: response.data.data.companyCode,
+        legalPerson: response.data.data.legalPerson,
+        orgCode: response.data.data.orgCode,
+        companyStatus: response.data.data.companyStatus,
+        establishDate: response.data.data.establishDate
+          ? new Date(response.data.data.establishDate.split(' ')[0]).getTime()
+          : undefined,
+        issueDate: response.data.data.issueDate
+          ? new Date(response.data.data.issueDate.split(' ')[0]).getTime()
+          : undefined,
+        companyType: response.data.data.companyType,
+        capital: response.data.data.capital
+          && response.data.data.capital.includes('万人民币')
+          ? (Number.parseFloat(response.data.data.capital.replace('万人民币', '')) * 10000).toFixed(6)
+          : response.data.data.capital,
+        industry: response.data.data.industry,
+        companyAddress: response.data.data.companyAddress,
+        businessScope: response.data.data.businessScope,
+        operationStartdate: response.data.data.operationStartdate
+          ? new Date(response.data.data.operationStartdate.split(' ')[0]).getTime()
+          : undefined,
+        operationEnddate: response.data.data.operationEnddate
+          ? new Date(response.data.data.operationEnddate.split(' ')[0]).getTime()
+          : undefined,
+        authority: response.data.data.authority,
+        errorTips: response.data.data.errorTips,
+        fetchTime: new Date().toISOString(),
+      }
     }
   },
 })
