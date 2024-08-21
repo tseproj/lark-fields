@@ -38,7 +38,6 @@ basekit.addField({
         'result_operation_startdate': '营业期限开始日期',
         'result_operation_enddate': '营业期限结束日期',
         'result_authority': '登记机关',
-        'result_error_tips': '错误提示',
         'result_fetch_time': '数据获取时间',
       },
       'en-US': {},
@@ -203,11 +202,6 @@ basekit.addField({
           title: t('result_authority'),
         },
         {
-          key: 'errorTips',
-          type: FieldType.Text,
-          title: t('result_error_tips'),
-        },
-        {
           key: 'fetchTime',
           type: FieldType.DateTime,
           title: t('result_fetch_time'),
@@ -247,15 +241,12 @@ basekit.addField({
     })
     if (!query.ok) {
       // @ts-ignore
-      console.log('User Query Error:', JSON.stringify(query))
+      console.log('Query Error:', JSON.stringify(query))
       return {code: FieldCode.Error, msg: `Query Error: ${query.status}`}
     }
     const response = await query.json()
     // @ts-ignore
-    console.log('User Query Success:', JSON.stringify(response))
-    if (response.status !== 'success') {
-      return {code: FieldCode.Error, msg: `Query Error: ${response.message}`}
-    }
+    console.log('Response Success:', JSON.stringify(response))
 
     return {
       code: FieldCode.Success,
@@ -263,7 +254,9 @@ basekit.addField({
         id: `${Math.random()}`,
         companyName: response.data.data.companyName,
         creditNo: response.data.data.creditNo,
-        companyCode: response.data.data.companyCode,
+        companyCode: response.data.data.companyCode
+          ? Number(response.data.data.companyCode)
+          : undefined,
         legalPerson: response.data.data.legalPerson,
         orgCode: response.data.data.orgCode,
         companyStatus: response.data.data.companyStatus,
@@ -275,9 +268,10 @@ basekit.addField({
           : undefined,
         companyType: response.data.data.companyType,
         capital: response.data.data.capital
-          && response.data.data.capital.includes('万人民币')
-          ? (Number.parseFloat(response.data.data.capital.replace('万人民币', '')) * 10000).toFixed(6)
-          : response.data.data.capital,
+          ? response.data.data.capital.includes('万人民币')
+            ? Number((Number.parseFloat(response.data.data.capital.replace('万人民币', '')) * 10000).toFixed(6))
+            : Number(response.data.data.capital)
+          : undefined,
         industry: response.data.data.industry,
         companyAddress: response.data.data.companyAddress,
         businessScope: response.data.data.businessScope,
@@ -288,8 +282,7 @@ basekit.addField({
           ? new Date(response.data.data.operationEnddate.split(' ')[0]).getTime()
           : undefined,
         authority: response.data.data.authority,
-        errorTips: response.data.data.errorTips,
-        fetchTime: new Date().toISOString(),
+        fetchTime: Date.now(),
       }
     }
   },
