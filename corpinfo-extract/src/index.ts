@@ -18,7 +18,8 @@ basekit.addField({
         'label_data_source': '信息接口提供商',
         'label_app_code': 'AppCode',
         'label_keyword': '工商信息关键词',
-        'tooltip_data_source_tooltip': '请按照字段捷径使用文档选择数据接口提供商',
+        'tooltip_app_code_tooltip': '请按照文档选择数据接口提供商：',
+        'tooltip_app_code_link': '字段捷径使用文档',
         'tooltip_app_code_placeholder': '请按照字段捷径使用文档获取 AppCode 以粘贴',
         'option_shumai': '阿里云市场-数脉',
         'option_shulian': '阿里云市场-数链',
@@ -44,8 +45,9 @@ basekit.addField({
         'label_data_source': 'Information API Provider',
         'label_app_code': 'AppCode',
         'label_keyword': 'Business Information Keyword',
-        'tooltip_data_source_tooltip': 'Please select the data API provider according to the field shortcut usage documentation',
+        'tooltip_app_code_tooltip': 'Please select the data API provider according to the field shortcut usage documentation',
         'tooltip_app_code_placeholder': 'Please obtain the AppCode according to the field shortcut usage documentation and paste it',
+        'tooltip_app_code_link': 'Field Shortcut Usage Documentation',
         'option_shumai': 'Alibaba Cloud Market - Shumai',
         'option_shulian': 'Alibaba Cloud Market - Shulian',
         'result_company_name': 'Company Name',
@@ -70,8 +72,9 @@ basekit.addField({
         'label_data_source': '情報インターフェースプロバイダー',
         'label_app_code': 'AppCode',
         'label_keyword': '企業情報キーワード',
-        'tooltip_data_source_tooltip': 'フィールドショートカット使用ドキュメントに従ってデータインターフェースプロバイダーを選択してください',
+        'tooltip_app_code_tooltip': 'フィールドショートカット使用ドキュメントに従ってデータインターフェースプロバイダーを選択してください',
         'tooltip_app_code_placeholder': 'フィールドショートカット使用ドキュメントに従ってAppCodeを取得し、貼り付けてください',
+        'tooltip_app_code_link': 'フィールドショートカット使用ドキュメント',
         'option_shumai': 'アリババクラウド市場 - 数脈',
         'option_shulian': 'アリババクラウド市場 - 数链',
         'result_company_name': '会社名',
@@ -99,15 +102,18 @@ basekit.addField({
     {
       key: 'dataSource',
       label: t('label_data_source'),
-      tooltips: [
-        { type: 'text', content: t('tooltip_data_source_tooltip') },
-      ],
       defaultValue: 'shumai',
       component: FieldComponent.Radio,
       props: {
         options: [
-          { label: t('option_shumai'), value: 'shumai' },
-          { label: t('option_shulian'), value: 'shulian' },
+          {
+            label: t('option_shumai'),
+            value: 'shumai',
+          },
+          {
+            label: t('option_shulian'),
+            value: 'shulian',
+          },
         ]
       },
       validator: {
@@ -118,6 +124,18 @@ basekit.addField({
       key: 'appCode',
       label: t('label_app_code'),
       component: FieldComponent.Input,
+      // @ts-ignore
+      tooltips: [
+        {
+          type: 'text',
+          content: t('tooltip_app_code_tooltip'),
+        },
+        {
+          type: 'link',
+          text: t('tooltip_app_code_link'),
+          url: 'https://feishu.cn/docx/SvKGddsnOoIdGZxbP3DcrSQpnfA',
+        }
+      ],
       props: {
         placeholder: t('tooltip_app_code_placeholder'),
       },
