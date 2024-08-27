@@ -133,7 +133,7 @@ basekit.addField({
         {
           type: 'link',
           text: t('tooltip_app_code_link'),
-          url: 'https://feishu.cn/docx/SvKGddsnOoIdGZxbP3DcrSQpnfA',
+          link: 'https://feishu.cn/docx/SvKGddsnOoIdGZxbP3DcrSQpnfA',
         }
       ],
       props: {
