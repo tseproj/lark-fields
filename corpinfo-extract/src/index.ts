@@ -19,8 +19,8 @@ basekit.addField({
         'label_app_code': 'AppCode',
         'label_keyword': '工商信息关键词',
         'tooltip_app_code_tooltip': '请按照文档选择数据接口提供商：',
-        'tooltip_app_code_link': '字段捷径使用文档',
-        'tooltip_app_code_placeholder': '请按照字段捷径使用文档获取 AppCode 以粘贴',
+        'tooltip_app_code_link': '使用指南',
+        'tooltip_app_code_placeholder': '请按照使用指南获取 AppCode 以粘贴',
         'option_shumai': '阿里云市场-数脉',
         'option_shulian': '阿里云市场-数链',
         'result_company_name': '公司名称',
@@ -45,9 +45,9 @@ basekit.addField({
         'label_data_source': 'Information API Provider',
         'label_app_code': 'AppCode',
         'label_keyword': 'Business Information Keyword',
-        'tooltip_app_code_tooltip': 'Please select the data API provider according to the field shortcut usage documentation',
-        'tooltip_app_code_placeholder': 'Please obtain the AppCode according to the field shortcut usage documentation and paste it',
-        'tooltip_app_code_link': 'Field Shortcut Usage Documentation',
+        'tooltip_app_code_tooltip': 'Please select the data API provider according to the field shortcut usage guide',
+        'tooltip_app_code_placeholder': 'Please obtain the AppCode according to the field shortcut usage guide and paste it',
+        'tooltip_app_code_link': 'Usage Guide',
         'option_shumai': 'Alibaba Cloud Market - Shumai',
         'option_shulian': 'Alibaba Cloud Market - Shulian',
         'result_company_name': 'Company Name',
@@ -133,7 +133,7 @@ basekit.addField({
         {
           type: 'link',
           text: t('tooltip_app_code_link'),
-          link: 'https://feishu.cn/docx/SvKGddsnOoIdGZxbP3DcrSQpnfA',
+          link: 'https://feishu.cn/docx/SvKGddsnOoIdGZxbP3DcrSQpnfA#XhtEdE8uIovuDYxYsyEcLyuBnle',
         }
       ],
       props: {
@@ -311,6 +311,9 @@ basekit.addField({
     if (!query.ok) {
       // @ts-ignore
       console.log('Query Error:', JSON.stringify(query))
+      if (query.status === 403) {
+        return {code: FieldCode.QuotaExhausted, msg: `Query Error: ${query.status}`}
+      }
       return {code: FieldCode.Error, msg: `Query Error: ${query.status}`}
     }
     const response = await query.json()
