@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@lark-opdev/block-basekit-server-api": "1.0.4-alpha.19",
+    "@pinyin-pro/data": "^1.2.0",
     "pinyin-pro": "^3.24.2"
   }
 }

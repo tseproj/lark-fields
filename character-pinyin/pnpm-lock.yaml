@@ -11,6 +11,9 @@ importers:
       '@lark-opdev/block-basekit-server-api':
         specifier: 1.0.4-alpha.19
         version: 1.0.4-alpha.19
+      '@pinyin-pro/data':
+        specifier: ^1.2.0
+        version: 1.2.0
       pinyin-pro:
         specifier: ^3.24.2
         version: 3.24.2
@@ -107,6 +110,9 @@ packages:
     resolution: {integrity: sha512-60CHpq+eqnTxLZQ4PGHYNwUX572hgpMHGPtTWMjdTMsAvlm69lZV/4ly6O3sAYkomo4NggGcomrDpBe34rxUqw==}
     engines: {node: '>=8.0.0'}
     deprecated: Deprecated in favor of @oclif/core
+
+  '@pinyin-pro/data@1.2.0':
+    resolution: {integrity: sha512-Aw59BsYYV6jD1oMbT7eikQkmNssCBr548DLI+YOAGo6XWPR3Bxq1Zokj6RBLM5zCVT35yuvjo6Tv5q7VdTNZQQ==}
 
   '@samverschueren/stream-to-observable@0.3.1':
     resolution: {integrity: sha512-c/qwwcHyafOQuVQJj0IlBjf5yYgBI7YPJ77k4fOJYesb41jio65eaJODRUmfYKhTOFBrIZ66kgvGPlNbjuoRdQ==}
@@ -2898,6 +2904,8 @@ snapshots:
       - supports-color
 
   '@oclif/screen@1.0.4': {}
+
+  '@pinyin-pro/data@1.2.0': {}
 
   '@samverschueren/stream-to-observable@0.3.1(rxjs@6.6.7)':
     dependencies:

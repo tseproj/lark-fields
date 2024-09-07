@@ -2,14 +2,14 @@ import {
   basekit,
   FieldType,
   FieldComponent,
-  NumberFormatter,
-  DateFormatter,
   field,
   FieldCode
 } from '@lark-opdev/block-basekit-server-api'
-const { t } = field
+import { pinyin as usePinyin, addDict } from 'pinyin-pro'
+// @ts-ignore
+import CompleteDict from '@pinyin-pro/data/complete'
 
-basekit.addDomainList(['alicloudapi.com', 'shumaidata.com'])
+const { t } = field
 
 basekit.addField({
   i18n: {
@@ -17,10 +17,33 @@ basekit.addField({
       'zh-CN': {
         'label_chinese_field': '待转换的汉字字段',
         'label_process_method': '非汉字字符处理方法',
+        'label_tone': '声调处理方法',
+        'label_bool': '处理模式',
+        'label_separator': '自定义拼音分隔符',
         'option_removed': '直接移除',
         'option_consecutive': '紧凑输出',
         'option_spaced': '使用空格隔开输出',
+        'option_symbol': '带声调符号',
+        'option_number': '带数字后缀',
+        'option_none': '不带声调',
+        'option_pinyin': '完整拼音',
+        'option_first': '输出拼音首字母',
+        'option_surname': '使用姓氏拼音',
+        'option_tov': '拼音ü输出v',
+        'option_multiple': '单个汉字输出多音字',
+        'tooltip_removed': '直接移除: “汉语pinyin”输出“汉语”; ',
+        'tooltip_consecutive': '紧凑输出: “pinyin”原样输出; ',
+        'tooltip_spaced': '使用空格隔开输出: “pinyin”输出“p i n y i n”',
+        'tooltip_none': '不带声调: “汉语拼音”输出“han yu pin yin”; ',
+        'tooltip_symbol': '带声调符号: “汉语拼音”输出“hàn yǔ pīn yīn”; ',
+        'tooltip_number': '带数字后缀: “han4 yu3 pin1 yin1”',
+        'tooltip_first': '拼音首字母: “汉语拼音”输出“h y p n”; ',
+        'tooltip_surname': '姓氏拼音: “曾某”输出“zēng mǒu”; ',
+        'tooltip_multiple': '多音字: 如“重”输出“chóng zhòng”, 仅单个字时有效；',
+        'tooltip_tov': '拼音ü输出v: 带音调的 ǖ,ǘ,ǚ,ǜ 不会被转换',
+        'tooltip_separator': '默认为空格，分隔符:“-”，输出示例:“pīn-yīn”',
         'placeholder_chinese_field': '请选择文本类型字段',
+        'placeholder_separator': '请输入自定义分隔符',
       },
       'en-US': {},
       'ja-JP': {},
@@ -43,26 +66,69 @@ basekit.addField({
     {
       key: 'method',
       label: t('label_process_method'),
-      defaultValue: 'removed',
       component: FieldComponent.Radio,
+      // @ts-ignore
+      tooltips: [
+        { type: 'text', content: t('tooltip_removed') },
+        { type: 'text', content: t('tooltip_consecutive') },
+        { type: 'text', content: t('tooltip_spaced') },
+      ],
       props: {
         options: [
-          {
-            label: t('option_removed'),
-            value: 'removed',
-          },
-          {
-            label: t('option_consecutive'),
-            value: 'consecutive',
-          },
-          {
-            label: t('option_spaced'),
-            value: 'spaced',
-          },
+          { label: t('option_removed'), value: 'removed' },
+          { label: t('option_consecutive'), value: 'consecutive' },
+          { label: t('option_spaced'), value: 'spaced' },
         ]
       },
-      validator: {
-        required: true,
+    },
+    {
+      key: 'tone',
+      label: t('label_tone'),
+      component: FieldComponent.Radio,
+      // @ts-ignore
+      tooltips: [
+        { type: 'text', content: t('tooltip_symbol') },
+        { type: 'text', content: t('tooltip_number') },
+        { type: 'text', content: t('tooltip_none') },
+      ],
+      props: {
+        options: [
+          { label: t('option_symbol'), value: 'symbol' },
+          { label: t('option_number'), value: 'num' },
+          { label: t('option_none'), value: 'none' },
+        ]
+      },
+    },
+    {
+      key: 'bool',
+      label: t('label_bool'),
+      component: FieldComponent.MultipleSelect,
+      // @ts-ignore
+      tooltips: [
+        { type: 'text', content: t('tooltip_first') },
+        { type: 'text', content: t('tooltip_surname') },
+        { type: 'text', content: t('tooltip_multiple') },
+        { type: 'text', content: t('tooltip_tov') },
+      ],
+      props: {
+        options: [
+          { label: t('option_first'), value: 'first' },
+          { label: t('option_surname'), value: 'surname' },
+          { label: t('option_multiple'), value: 'multiple' },
+          { label: t('option_tov'), value: 'tov' },
+        ]
+      },
+    },
+    {
+      key: 'separator',
+      label: t('label_separator'),
+      component: FieldComponent.Input,
+      // @ts-ignore
+      tooltips: [
+        { type: 'text', content: t('tooltip_separator') },
+      ],
+      props: {
+        placeholder: t('placeholder_separator')
       },
     },
   ],
@@ -71,79 +137,61 @@ basekit.addField({
     type: FieldType.Text,
   },
 
-  execute: async (formItemParams, context) => {
-    const { dataSource, appCode, keyword } = formItemParams
-    const { fetch } = context
-
-    let baseUrl = ''
-    if (dataSource.value === 'shulian')
-      baseUrl = `https://slycompany.market.alicloudapi.com/business2/get`
-    else if (dataSource.value === 'shumai')
-      baseUrl = `https://businessstd.shumaidata.com/getbusinessstd`
-    else
-      return { code: FieldCode.AuthorizationError, msg: 'No Authorization' }
-
-    // @ts-ignore
-    let params = new URLSearchParams({
-      keyword: keyword[0].text,
-    })
-    let headers = {
-      'Authorization': `APPCODE ${appCode}`,
-      'Content-Type': 'application/json; charset=UTF-8'
+  execute: async (formItemParams) => {
+    const { field, method, tone, separator, bool } = formItemParams
+    let first = null, surname = null, multiple = null, tov = null
+    if (bool) {
+      ({ first, surname, multiple, tov } = bool.reduce((acc, option) => {
+        acc[option.value] = true
+        return acc
+      }, { first: null, surname: null, multiple: null, tov: null }))
     }
-    let url = baseUrl + '?' + params.toString()
+    addDict(CompleteDict)
 
-    const query = await fetch(url, {
-      method: 'GET',
-      headers: headers,
-    })
-    if (!query.ok) {
-      // @ts-ignore
-      console.log('Query Error:', JSON.stringify(query))
-      if (query.status === 403) {
-        return {code: FieldCode.QuotaExhausted, msg: `Query Error: ${query.status}`}
+    const rawPinyin = usePinyin(
+      field[0].text,
+      {
+        nonZh: method ? method.value : 'removed', // 非汉字字符处理方法
+        toneType: tone ? tone.value : 'symbol', // 声调处理方法
+        separator: separator || ' ', // 自定义拼音分隔符
+        pattern: first ? 'first' : 'pinyin', // 输出模式
+        surname: surname ? 'head' : 'off', // 姓氏模式
+        multiple: !!multiple, // 多音字模式
+        v: !!tov, // 拼音ü输出v
+        segmentit: 2, // 分词算法,调试用
       }
-      return {code: FieldCode.Error, msg: `Query Error: ${query.status}`}
-    }
-    const response = await query.json()
-    // @ts-ignore
-    console.log('Response Success:', JSON.stringify(response))
+    )
+    // 标点符号输出优化
+    const pinyin = rawPinyin.replace(/[ 。，？！「」・《》、；：（）]/g, match => {
+      switch (match) {
+        case ' ，': return ','
+        case ' 。': return '.'
+        case ' ？': return '?'
+        case ' ！': return '!'
+        case ' 「': return '「'
+        case ' 」': return '」'
+        case ' ・': return '・'
+        case ' 《': return '《'
+        case ' 》': return '》'
+        case ' 、': return '、'
+        case ' ；': return ';'
+        case ' ：': return ':'
+        case ' （': return '('
+        case ' ）': return ')'
+        default: return match;
+      }
+    })
 
-    return {
-      code: FieldCode.Success,
-      data: {
-        id: `${Math.random()}`,
-        companyName: response.data.data.companyName,
-        creditNo: response.data.data.creditNo,
-        companyCode: response.data.data.companyCode
-          ? Number(response.data.data.companyCode)
-          : undefined,
-        legalPerson: response.data.data.legalPerson,
-        orgCode: response.data.data.orgCode,
-        companyStatus: response.data.data.companyStatus,
-        establishDate: response.data.data.establishDate
-          ? new Date(response.data.data.establishDate.split(' ')[0]).getTime()
-          : undefined,
-        issueDate: response.data.data.issueDate
-          ? new Date(response.data.data.issueDate.split(' ')[0]).getTime()
-          : undefined,
-        companyType: response.data.data.companyType,
-        capital: response.data.data.capital
-          ? response.data.data.capital.includes('万人民币')
-            ? Number((Number.parseFloat(response.data.data.capital.replace('万人民币', '')) * 10000).toFixed(6))
-            : Number(response.data.data.capital)
-          : undefined,
-        industry: response.data.data.industry,
-        companyAddress: response.data.data.companyAddress,
-        businessScope: response.data.data.businessScope,
-        operationStartdate: response.data.data.operationStartdate
-          ? new Date(response.data.data.operationStartdate.split(' ')[0]).getTime()
-          : undefined,
-        operationEnddate: response.data.data.operationEnddate
-          ? new Date(response.data.data.operationEnddate.split(' ')[0]).getTime()
-          : undefined,
-        authority: response.data.data.authority,
-        fetchTime: Date.now(),
+    try {
+      return {
+        code: FieldCode.Success,
+        data: pinyin,
+      }
+    }
+    catch (error) {
+      return {
+        code: FieldCode.InvalidArgument,
+        msg: `Invalid Input: ${error}`,
       }
     }
   },
